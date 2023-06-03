@@ -1,80 +1,53 @@
-#include <cs50.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-int main(void)
-{
-    string number = get_string("Número: ");
-    int size = strlen(number);
-    long produto[size];
-    long somaDigitos = 0;
+bool isValidChecksum(const char* number) {
+    int len = strlen(number);
+    int sum = 0;
+    bool doubleDigit = false;
 
-    long *n = malloc(size * sizeof(long));
-
-    if (n == NULL)
-    {
-        printf("Erro na alocação de memória.\n");
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        n[i] = number[i] - '0';
-    }
-
-    //printf("Number: \n");
-
-    //for (int i = 0; i < size; i++)
-    //{
-       // printf("%ld ", n[i]);
-    //}
-
-    //printf("\n");
-
-    for (int i = size - 2; i >= 0; i -= 2)
-    {
-        produto[i] = n[i] * 2;
-    }
-
-    for (int i = 0; i < sizeof(produto) / sizeof(produto[0]); i++)
-    {
-        int numero = produto[i];
-        while (numero != 0)
-        {
-            int digito = numero % 10;
-            somaDigitos += digito;
-            numero /= 10;
+    for (int i = len - 1; i >= 0; i--) {
+        int digit = number[i] - '0';
+        if (doubleDigit) {
+            digit *= 2;
+            if (digit > 9) {
+                digit = (digit % 10) + 1;
+            }
         }
+        sum += digit;
+        doubleDigit = !doubleDigit;
     }
 
-    for (int i = 1; i < size; i += 2)
-    {
-        somaDigitos += n[i];
+    return (sum % 10) == 0;
+}
+
+const char* getCardType(const char* number) {
+    int len = strlen(number);
+
+    if ((len == 13 || len == 16) && number[0] == '4') {
+        return "VISA";
+    } else if (len == 15 && number[0] == '3' && (number[1] == '4' || number[1] == '7')) {
+        return "AMEX";
+    } else if (len == 16 && number[0] == '5' && number[1] >= '1' && number[1] <= '5') {
+        return "MASTERCARD";
     }
 
-    int ultimoDigito = somaDigitos % 10;
+    return "INVALID";
+}
 
-    if (ultimoDigito > 0)
-    {
-        printf("Número Inválido");
-        printf("\n");
-    }
-    else if ((size == 13 || size == 16) && n[0] == 4)
-    {
-        printf("VISA\n");
-    }
-    else if (size == 15 && n[0] == 3 && (n[1] == 4 || n[1] == 7))
-    {
-        printf("AMEX\n");
-    }
-    else if (size == 16 && n[0] == 5 && (n[1] >= 1 && n[1] <= 5))
-    {
-        printf("MASTERCARD\n");
+int main(void) {
+    char number[17];
+    printf("Number: ");
+    scanf("%16s", number);
+
+    if (!isValidChecksum(number)) {
+        printf("INVALID\n");
+        return 0;
     }
 
-
-
-    free(n);
+    const char* cardType = getCardType(number);
+    printf("%s\n", cardType);
 
     return 0;
 }
